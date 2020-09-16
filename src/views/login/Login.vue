@@ -40,7 +40,6 @@
 
 <script>
 // 导入封装的axios网络模块
-import request from '@/network/request'
 export default {
   name: 'Login',
   data() {
@@ -90,35 +89,46 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          // this.$store.dispatch('Login', this.loginForm).then(() => {
-          //   this.loading = false
-          //   this.$router.push({ path: this.redirect || '/' })
-          // }).catch(() => {
-          //   this.loading = false
-          // })
-          request({
-            url: 'login',
-            method: 'post',
-            data: this.loginForm
-          }).then(resolve => {
-            if (resolve.meta.status !== 200) {
-              return this.$message({
+          this.$store.dispatch('Login', this.loginForm).then(res => {
+            if (res) {
+              this.loading = false
+              this.$message({
+                message: '登录成功',
+                type: 'success'
+              })
+              this.$router.replace('/home')
+            } else {
+              this.$message({
                 message: '登录失败',
                 type: 'error'
               })
             }
-            this.$message({
-              message: '登录成功',
-              type: 'success'
-            })
-            // 之后的步骤：
-            // 1、将登录成功后的token保存到客户端的sessionStorge中
-            // 1.1 项目中除了登录之外的其他API接口，必须在登录之后才能访问
-            // 1.2 token只能在单曲网站打开期间生效，故保存到session
-            window.sessionStorage.setItem('token', resolve.data.token)
-            // 2、跳转到主页面home
-            this.$router.push('/home')
+          }).catch(() => {
+            this.loading = false
           })
+          // request({
+          //   url: 'login',
+          //   method: 'post',
+          //   data: this.loginForm
+          // }).then(resolve => {
+          //   if (resolve.meta.status !== 200) {
+          // return this.$message({
+          //   message: '登录失败',
+          //   type: 'error'
+          // })
+          //   }
+          // this.$message({
+          //   message: '登录成功',
+          //   type: 'success'
+          // })
+          // 之后的步骤：
+          // 1、将登录成功后的token保存到客户端的sessionStorge中
+          // 1.1 项目中除了登录之外的其他API接口，必须在登录之后才能访问
+          // 1.2 token只能在单曲网站打开期间生效，故保存到session
+          // window.sessionStorage.setItem('token', resolve.data.token)
+          // 2、跳转到主页面home
+          // this.$router.replace('/home')
+          // })
         } else {
           console.log('error submit!!')
           return false

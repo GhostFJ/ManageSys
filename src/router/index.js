@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import { getToken } from '../utils/auth'
 // import { component } from 'vue/types/umd'
 
 Vue.use(VueRouter)
@@ -17,7 +18,25 @@ const routes = [
   },
   {
     path: '/home',
-    component: () => import('@/views/home/Home')
+    component: () => import('@/views/home/Home'),
+    children: [
+      {
+        path: '',
+        redirect: 'welcome'
+      },
+      {
+        path: 'welcome',
+        component: () => import('@/views/main/Welcome')
+      },
+      {
+        path: 'users',
+        component: () => import('@/views/user/Users')
+      },
+      {
+        path: 'roles',
+        component: () => import('@/views/authority/Roles')
+      }
+    ]
   }
 ]
 
@@ -29,7 +48,8 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
   if (to.path === '/login') return next()
   // 获取token
-  const tokenStr = window.sessionStorage.getItem('token')
+  const tokenStr = getToken()
+  // window.sessionStorage.getItem('Token')
   if (!tokenStr) {
     return next('/login')
   }
