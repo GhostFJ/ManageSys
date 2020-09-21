@@ -35,6 +35,10 @@ const routes = [
       {
         path: 'roles',
         component: () => import('@/views/authority/Roles')
+      },
+      {
+        path: 'rights',
+        component: () => import('@/views/authority/Rights')
       }
     ]
   }

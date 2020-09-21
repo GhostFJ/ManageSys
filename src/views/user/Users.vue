@@ -82,7 +82,7 @@
         <el-button type="danger" icon="el-icon-delete" size="mini" @click="removeUserById(scope.row.id)"></el-button>
         <!-- 分配角色按钮 -->
         <el-tooltip  effect="dark" content="分配角色" placement="top" :enterable="false">
-          <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+          <el-button type="warning" icon="el-icon-setting" size="mini" @click="setRole(scope.row)"></el-button>
         </el-tooltip>
       </el-table-column>
     </el-table>
@@ -119,6 +119,32 @@
     <span slot="footer">
       <el-button @click="editDialogVisible = false">取 消</el-button>
       <el-button type="primary" @click="editUserInfo">确 定</el-button>
+    </span>
+  </el-dialog>
+
+  <!-- 分配角色的对话框 -->
+  <el-dialog
+    title="分配角色"
+    @close="setRoleDialogClosed"
+    :visible.sync="setRoledialogVisible"
+    width="50%">
+    <div>
+      <p>当前的用户:  {{userInfo.username}}</p>
+      <p>当前的角色:    {{userInfo.role_name}}</p>
+      <p>分配新角色
+        <el-select v-model="selectRoleId" placeholder="请选择">
+          <el-option
+            v-for="item in roleList"
+            :key="item.id"
+            :label="item.roleName"
+            :value="item.id">
+          </el-option>
+        </el-select>
+      </p>
+    </div>
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="setRoledialogVisible = false">取 消</el-button>
+      <el-button type="primary" @click="saveRoleInfo">确 定</el-button>
     </span>
   </el-dialog>
 </div>
@@ -182,10 +208,15 @@ export default {
         pagesize: 2
       },
       userList: [],
+      roleList: [],
       total: 0,
+      selectRoleId: '',
+      // 需要被分配角色的用户信息
+      userInfo: {},
       // 控制对话框的显示
       dialogVisible: false,
       editDialogVisible: false,
+      setRoledialogVisible: false,
       // 添加用户的表单数据
       addForm: {
         username: '',
@@ -372,6 +403,39 @@ export default {
           message: '已取消删除'
         })
       })
+    },
+    // 分配角色的对话框
+    async setRole(userinfo) {
+      this.userInfo = userinfo
+      // 在展示对话框之前获取所有角色的列表
+      // 这边解构赋值的问题，await阻塞后返回的是一个promise Result对象
+      // 里面有data属性(保存数据的对象数组)和meta属性(状态信息对象)，要分别解构赋值
+
+      const { data: res, meta: state } = await request.get('roles')
+      if (state.status !== 200) {
+        return this.$message.error('获取角色列表失败')
+      }
+      this.roleList = res
+      this.setRoledialogVisible = true
+    },
+    // 完成分配角色的功能
+    async saveRoleInfo() {
+      if (!this.selectRoleId) {
+        return this.$message.error('未选择角色')
+      }
+      const { meta: state } = await request.put(`users/${this.userInfo.id}/role`,
+        { rid: this.selectRoleId })
+      if (state.status !== 200) {
+        return this.$message.error('更新角色列表失败')
+      }
+      this.$message.success('更新成功')
+      this.getUserList()
+      this.setRoledialogVisible = false
+    },
+    // 分配角色对话框关闭事件
+    setRoleDialogClosed() {
+      this.selectRoleId = ''
+      this.userInfo = {}
     }
   },
   // 生命周期 - 创建完成（可以访问当前this实例）
